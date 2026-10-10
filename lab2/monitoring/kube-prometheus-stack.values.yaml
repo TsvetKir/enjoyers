@@ -1,0 +1,57 @@
+grafana:
+  enabled: true
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      access: proxy
+      url: http://loki-gateway.monitoring.svc.cluster.local
+      isDefault: false
+      editable: false
+
+alertmanager:
+  enabled: true
+  config:
+    global:
+      resolve_timeout: 5m
+
+    route:
+      receiver: "null"
+      group_by: ["namespace", "service", "alertname"]
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 5m
+      routes:
+        - receiver: local-webhook
+          matchers:
+            - namespace="lab2"
+            - service="api"
+            - severity="critical"
+
+    receivers:
+      - name: "null"
+      - name: local-webhook
+        webhook_configs:
+          - url: http://alert-webhook.monitoring.svc.cluster.local:8080/alerts
+            send_resolved: true
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    retention: 24h
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 2Gi

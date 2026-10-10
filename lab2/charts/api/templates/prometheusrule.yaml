@@ -1,0 +1,65 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "api.fullname" . }}-alerts
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: api.critical
+      rules:
+        - alert: ApiHighErrorRate
+          expr: |
+            (
+              sum(rate(http_requests_total{
+                namespace="lab2", service="api", status=~"5.."
+              }[2m]))
+              /
+              sum(rate(http_requests_total{
+                namespace="lab2", service="api"
+              }[2m]))
+            ) > 0.10
+          for: 2m
+          labels:
+            severity: critical
+            namespace: lab2
+            service: api
+          annotations:
+            summary: "Высокая доля серверных ошибок API"
+            description: "Доля HTTP 5xx превышает 10% в течение двух минут."
+            runbook: "Проверить журналы ERROR в Loki, найти трассировки по trace_id, проверить последние изменения приложения и доступность его зависимостей."
+        - alert: ApiHighLatency
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (
+                rate(http_request_duration_seconds_bucket{
+                  namespace="lab2", service="api"
+                }[2m])
+              )
+            ) > 1
+          for: 2m
+          labels:
+            severity: critical
+            namespace: lab2
+            service: api
+          annotations:
+            summary: "Высокая задержка обработки запросов API"
+            description: "p95 времени обработки запросов превышает одну секунду в течение двух минут."
+            runbook: "Проверить график задержки, найти медленные трассировки в Jaeger, определить длительные вложенные операции и проверить ресурсы приложения и его зависимости."
+        - alert: ApiUnavailable
+          expr: |
+            (
+              max(up{namespace="lab2", service="api"}) == 0
+            )
+            or
+            absent(up{namespace="lab2", service="api"})
+          for: 1m
+          labels:
+            severity: critical
+            namespace: lab2
+            service: api
+          annotations:
+            summary: "API недоступен для сбора метрик"
+            description: "В течение минуты отсутствуют доступные цели сбора метрик API."
+            runbook: "Проверить готовность Pod и Deployment, события Kubernetes, Service и EndpointSlice. Проверить доступность /health и /metrics, затем восстановить работу приложения или соединение с ним."

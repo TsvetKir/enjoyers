@@ -1,0 +1,16 @@
+replicaCount: 1
+
+env:
+  - name: ALERTMANAGER_URI
+    value: http://monitoring-kube-prometheus-alertmanager.monitoring.svc.cluster.local:9093
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
