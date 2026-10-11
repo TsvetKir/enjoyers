@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-trusted-image-registry
+spec:
+  background: true
+  validationFailureAction: Enforce
+  rules:
+    - name: images-must-come-from-ghcr
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - local-path-storage
+      validate:
+        message: "Container images must be published in the trusted ghcr.io registry."
+        foreach:
+          - list: request.object.spec.containers
+            pattern:
+              image: "ghcr.io/*"
+          - list: request.object.spec.initContainers
+            pattern:
+              image: "ghcr.io/*"

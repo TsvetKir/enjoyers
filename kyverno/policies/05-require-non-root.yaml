@@ -1,0 +1,51 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-non-root
+spec:
+  background: true
+  validationFailureAction: Enforce
+  rules:
+    - name: pods-must-run-as-non-root
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - local-path-storage
+      validate:
+        message: "Pods and all containers must explicitly run as non-root."
+        pattern:
+          spec:
+            securityContext:
+              runAsNonRoot: true
+    - name: all-containers-must-run-as-non-root
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - local-path-storage
+      validate:
+        message: "Every container must explicitly run as non-root."
+        foreach:
+          - list: request.object.spec.containers
+            pattern:
+              securityContext:
+                runAsNonRoot: true
+          - list: request.object.spec.initContainers
+            pattern:
+              securityContext:
+                runAsNonRoot: true
