@@ -10,6 +10,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -20,7 +22,13 @@ func main() {
 	}
 	defer db.Close()
 
+	processedOrders := prometheus.NewCounter(prometheus.CounterOpts{Name: "shop_worker_processed_orders_total", Help: "Orders successfully committed as processed by this worker."})
+	workerErrors := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "shop_worker_errors_total", Help: "Worker database errors by operation."}, []string{"operation"})
+	prometheus.MustRegister(processedOrders, workerErrors)
+	workerErrors.WithLabelValues("schema").Add(0)
+	workerErrors.WithLabelValues("process").Add(0)
 	health := http.NewServeMux()
+	health.Handle("GET /metrics", promhttp.Handler())
 	health.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		_, _ = w.Write([]byte("ok"))
@@ -47,6 +55,7 @@ func main() {
 	for {
 		if !schemaReady {
 			if err := ensureSchema(ctx, db); err != nil {
+				workerErrors.WithLabelValues("schema").Inc()
 				log.Printf("initialize schema (will retry): %v", err)
 				time.Sleep(interval)
 				continue
@@ -55,11 +64,13 @@ func main() {
 		}
 		processed, err := processOne(ctx, db)
 		if err != nil {
+			workerErrors.WithLabelValues("process").Inc()
 			log.Printf("process order: %v", err)
 			time.Sleep(interval)
 			continue
 		}
 		if processed {
+			processedOrders.Inc()
 			continue
 		}
 		time.Sleep(interval)

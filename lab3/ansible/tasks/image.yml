@@ -1,0 +1,25 @@
+- name: Build service image with Docker cache
+  ansible.builtin.command:
+    argv: [docker, build, --quiet, -f, "{{ lab3_dir }}/Dockerfile.{{ component }}", -t, "{{ image_repository_prefix }}-{{ component }}:local-build", "{{ lab3_dir }}"]
+  register: image_build
+  changed_when: false
+- name: Inspect built service image
+  ansible.builtin.command:
+    argv: [docker, image, inspect, "{{ image_repository_prefix }}-{{ component }}:local-build"]
+  register: image_inspect
+  changed_when: false
+- name: Derive immutable local tag from image ID
+  ansible.builtin.set_fact:
+    service_tag: "local-{{ (image_inspect.stdout | from_json)[0].Id | replace('sha256:', '') }}"
+- name: Assign content tag
+  ansible.builtin.command:
+    argv: [docker, tag, "{{ image_repository_prefix }}-{{ component }}:local-build", "{{ image_repository_prefix }}-{{ component }}:{{ service_tag }}"]
+  changed_when: false
+- name: Load image into kind (also handles recreated clusters)
+  ansible.builtin.command:
+    argv: [kind, load, docker-image, "{{ image_repository_prefix }}-{{ component }}:{{ service_tag }}", --name, "{{ cluster_name }}"]
+  register: image_load
+  changed_when: "'not yet present' in (image_load.stdout + image_load.stderr)"
+- name: Remember tags for Helm values
+  ansible.builtin.set_fact:
+    service_tags: "{{ service_tags | default({}) | combine({component: service_tag}) }}"

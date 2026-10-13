@@ -1,0 +1,53 @@
+- name: Validate names and source location
+  ansible.builtin.assert:
+    that:
+      - cluster_name is match('^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$')
+      - shop_namespace is match('^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$')
+      - lab3_dir is match('^/')
+      - state_dir is match('^/')
+      - image_repository_prefix is match('^ghcr.io/[a-z0-9/_-]+$')
+- name: Check CLI executables
+  ansible.builtin.command:
+    argv: "{{ item }}"
+  loop:
+    - [docker, --version]
+    - [kind, version]
+    - [kubectl, version, --client=true]
+    - [helm, version, --short]
+  changed_when: false
+  check_mode: false
+- name: Inspect required sources
+  ansible.builtin.stat:
+    path: "{{ lab3_dir }}/{{ item }}"
+  loop:
+    - Dockerfile.api
+    - Dockerfile.worker
+    - go.mod
+    - go.sum
+    - cmd/api/main.go
+    - cmd/worker/main.go
+    - charts/shop/Chart.yaml
+    - cnpg-operator-values.yaml
+    - kyverno/policies
+  register: source_files
+- name: Require all lab files
+  ansible.builtin.assert:
+    that: item.stat.exists
+    fail_msg: "Missing {{ item.item }} in {{ lab3_dir }}"
+  loop: "{{ source_files.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+- name: Lint existing shop chart
+  ansible.builtin.command:
+    argv: [helm, lint, "{{ lab3_dir }}/charts/shop"]
+  changed_when: false
+  check_mode: false
+- name: Render existing shop chart locally
+  ansible.builtin.command:
+    argv: [helm, template, shop, "{{ lab3_dir }}/charts/shop", --namespace, "{{ shop_namespace }}"]
+  changed_when: false
+  check_mode: false
+  no_log: true
+- name: Require the five lab policies
+  ansible.builtin.assert:
+    that: query('fileglob', lab3_dir + '/kyverno/policies/*.yaml') | length == 5

@@ -1,0 +1,43 @@
+- name: Apply policies with approved monitoring image list
+  kubernetes.core.k8s:
+    state: present
+    apply: true
+    src: "{{ item }}"
+    wait: true
+    wait_condition:
+      type: Ready
+      status: 'True'
+    wait_timeout: "{{ wait_timeout }}"
+  loop: "{{ query('fileglob', lab3_dir + '/kyverno/policies/*.yaml') | sort }}"
+- name: Cache monitoring chart
+  ansible.builtin.include_tasks: chart.yml
+  vars:
+    operator_chart:
+      name: kube-prometheus-stack
+      repo: https://prometheus-community.github.io/helm-charts
+      version: "{{ monitoring_version }}"
+- name: Restore metrics stack
+  kubernetes.core.helm:
+    name: monitoring
+    chart_ref: "{{ operator_archives['kube-prometheus-stack'] }}"
+    release_namespace: monitoring
+    create_namespace: true
+    values_files:
+      - "{{ lab3_dir }}/monitoring/lab2.values.yaml"
+      - "{{ lab3_dir }}/monitoring/lab3.values.yaml"
+- name: Wait for operator-created workloads
+  ansible.builtin.command:
+    argv: [kubectl, --kubeconfig, "{{ kubeconfig_file }}", --context, "{{ cluster_context }}", -n, monitoring, rollout, status, "{{ item }}", "--timeout={{ wait_timeout }}s"]
+  loop:
+    - deployment/monitoring-grafana
+    - statefulset/prometheus-monitoring-kube-prometheus-prometheus
+    - statefulset/alertmanager-monitoring-kube-prometheus-alertmanager
+  changed_when: false
+- name: Read monitoring state
+  ansible.builtin.command:
+    argv: [kubectl, --kubeconfig, "{{ kubeconfig_file }}", --context, "{{ cluster_context }}", -n, monitoring, get, "pods,pvc"]
+  register: monitoring_state
+  changed_when: false
+- name: Show monitoring state
+  ansible.builtin.debug:
+    var: monitoring_state.stdout_lines

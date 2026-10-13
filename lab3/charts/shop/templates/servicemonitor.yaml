@@ -1,0 +1,25 @@
+{{- if .Values.monitoring.enabled }}
+{{- range $component, $port := dict "api" "http" "worker" "health" }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $.Release.Name }}-{{ $component }}
+  labels:
+    {{- include "shop.commonLabels" $ | nindent 4 }}
+    release: {{ $.Values.monitoring.releaseLabel | quote }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ $.Release.Namespace | quote }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "shop.name" $ }}
+      app.kubernetes.io/instance: {{ $.Release.Name }}
+      app.kubernetes.io/component: {{ $component }}
+  endpoints:
+    - port: {{ $port }}
+      path: /metrics
+      interval: {{ $.Values.monitoring.interval }}
+{{- end }}
+{{- end }}

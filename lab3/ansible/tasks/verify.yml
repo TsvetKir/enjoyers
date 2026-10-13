@@ -1,0 +1,36 @@
+- name: Read database name from existing chart values
+  ansible.builtin.set_fact:
+    shop_chart_values: "{{ lookup('file', lab3_dir + '/charts/shop/values.yaml') | from_yaml }}"
+- name: Wait for database readiness
+  kubernetes.core.k8s_info:
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    name: "{{ shop_chart_values.postgres.name }}"
+    namespace: "{{ shop_namespace }}"
+    wait: true
+    wait_condition:
+      type: Ready
+      status: 'True'
+    wait_timeout: "{{ wait_timeout }}"
+  register: database_status
+- name: Require database object to exist
+  ansible.builtin.assert:
+    that: database_status.resources | length == 1
+- name: Check completed application rollouts
+  ansible.builtin.command:
+    argv: [kubectl, --kubeconfig, "{{ kubeconfig_file }}", --context, "{{ cluster_context }}", -n, "{{ shop_namespace }}", rollout, status, "deployment/shop-{{ item }}", "--timeout={{ wait_timeout }}s"]
+  loop: [api, worker]
+  changed_when: false
+- name: Show pods, services and storage
+  ansible.builtin.command:
+    argv: [kubectl, --kubeconfig, "{{ kubeconfig_file }}", --context, "{{ cluster_context }}", -n, "{{ shop_namespace }}", get, "pods,svc,pvc"]
+  register: resources_status
+  changed_when: false
+- name: Report infrastructure readiness and next HTTP check
+  ansible.builtin.debug:
+    msg:
+      - "{{ resources_status.stdout_lines }}"
+      - "Kubeconfig: {{ kubeconfig_file }}"
+      - "HTTP check: kubectl --kubeconfig '{{ kubeconfig_file }}' -n {{ shop_namespace }} port-forward svc/shop-api 8080:{{ shop_chart_values.api.service.port }}"
+      - "Then curl -f http://127.0.0.1:8080/health and curl -f http://127.0.0.1:8080/orders"
+      - Monitoring and failure experiments are not included. HTTP and worker order processing are not verified by this playbook.

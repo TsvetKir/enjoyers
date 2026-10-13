@@ -62,3 +62,18 @@ postgres:
     limits:
       cpu: 500m
       memory: 512Mi
+
+monitoring:
+  enabled: false
+  releaseLabel: monitoring
+  interval: 15s
+  dashboard:
+    enabled: true
+  alerts:
+    enabled: true
+    unavailableFor: 1m
+    errorRate: 0.10
+    latencySeconds: 1
+    evaluationWindow: 2m
+    for: 2m
+    minRequests: 20

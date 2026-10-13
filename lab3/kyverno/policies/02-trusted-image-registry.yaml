@@ -6,25 +6,57 @@ spec:
   background: true
   validationFailureAction: Enforce
   rules:
-    - name: images-must-come-from-ghcr
-      match:
-        any:
-          - resources:
-              kinds:
-                - Pod
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - kube-system
-                - kyverno
-                - local-path-storage
-      validate:
-        message: "Container images must be published in the trusted ghcr.io registry."
-        foreach:
-          - list: request.object.spec.containers
-            pattern:
-              image: "ghcr.io/*"
-          - list: request.object.spec.initContainers
-            pattern:
-              image: "ghcr.io/*"
+  - name: images-must-come-from-ghcr
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - kube-system
+          - kyverno
+          - local-path-storage
+          - monitoring
+    validate:
+      message: Container images must be published in the trusted ghcr.io registry.
+      foreach:
+      - list: request.object.spec.containers
+        pattern:
+          image: ghcr.io/*
+      - list: request.object.spec.initContainers
+        pattern:
+          image: ghcr.io/*
+  - name: monitoring-approved-images
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - monitoring
+    validate:
+      message: Only explicitly approved monitoring image tags are allowed.
+      foreach:
+      - list: request.object.spec.containers
+        anyPattern:
+        - image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.9
+        - image: quay.io/kiwigrid/k8s-sidecar:2.14.1
+        - image: docker.io/grafana/grafana:13.2.3-distroless
+        - image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0
+        - image: quay.io/prometheus-operator/prometheus-operator:v0.94.1
+        - image: quay.io/prometheus-operator/prometheus-config-reloader:v0.94.1
+        - image: quay.io/prometheus/alertmanager:v0.34.1
+        - image: quay.io/prometheus/prometheus:v3.15.0-distroless
+      - list: request.object.spec.initContainers
+        anyPattern:
+        - image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.9
+        - image: quay.io/kiwigrid/k8s-sidecar:2.14.1
+        - image: docker.io/grafana/grafana:13.2.3-distroless
+        - image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0
+        - image: quay.io/prometheus-operator/prometheus-operator:v0.94.1
+        - image: quay.io/prometheus-operator/prometheus-config-reloader:v0.94.1
+        - image: quay.io/prometheus/alertmanager:v0.34.1
+        - image: quay.io/prometheus/prometheus:v3.15.0-distroless

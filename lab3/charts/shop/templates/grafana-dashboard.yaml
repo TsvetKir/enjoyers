@@ -1,0 +1,12 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.dashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-dashboard
+  labels:
+    {{- include "shop.commonLabels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  shop-dashboard.json: |-
+    {{- .Files.Get "files/shop-dashboard.json" | replace "@NAMESPACE@" .Release.Namespace | replace "@API_SERVICE@" (printf "%s-api" .Release.Name) | replace "@WORKER_SERVICE@" (printf "%s-worker" .Release.Name) | replace "@DASHBOARD_UID@" (printf "%s-%s-overview" .Release.Namespace .Release.Name) | nindent 4 }}
+{{- end }}

@@ -1,0 +1,60 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.alerts.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-alerts
+  labels:
+    {{- include "shop.commonLabels" . | nindent 4 }}
+    release: {{ .Values.monitoring.releaseLabel | quote }}
+spec:
+  groups:
+    - name: {{ .Release.Namespace }}.{{ .Release.Name }}.api
+      rules:
+        - alert: ShopApiUnavailable
+          expr: |
+            (max(up{namespace="{{ .Release.Namespace }}",service="{{ .Release.Name }}-api"}) == 0)
+            or absent(up{namespace="{{ .Release.Namespace }}",service="{{ .Release.Name }}-api"})
+          for: {{ .Values.monitoring.alerts.unavailableFor }}
+          labels:
+            severity: critical
+            namespace: {{ .Release.Namespace | quote }}
+            service: {{ printf "%s-api" .Release.Name | quote }}
+          annotations:
+            summary: "Нет доступных целей сбора метрик API shop"
+            description: "Prometheus не может получить метрики ни с одной реплики API."
+            runbook: "Проверить Pod, EndpointSlice, ServiceMonitor и /metrics. Доступность HTTP /orders проверяется отдельно."
+        - alert: ShopApiHighErrorRate
+          expr: |
+            (
+              sum(rate(shop_http_requests_total{namespace="{{ .Release.Namespace }}",service="{{ .Release.Name }}-api",route=~"/order|/orders",code=~"5.."}[{{ .Values.monitoring.alerts.evaluationWindow }}]))
+              /
+              sum(rate(shop_http_requests_total{namespace="{{ .Release.Namespace }}",service="{{ .Release.Name }}-api",route=~"/order|/orders"}[{{ .Values.monitoring.alerts.evaluationWindow }}]))
+            ) > {{ .Values.monitoring.alerts.errorRate }}
+            and
+            sum(increase(shop_http_requests_total{namespace="{{ .Release.Namespace }}",service="{{ .Release.Name }}-api",route=~"/order|/orders"}[{{ .Values.monitoring.alerts.evaluationWindow }}])) >= {{ .Values.monitoring.alerts.minRequests }}
+          for: {{ .Values.monitoring.alerts.for }}
+          labels:
+            severity: critical
+            namespace: {{ .Release.Namespace | quote }}
+            service: {{ printf "%s-api" .Release.Name | quote }}
+          annotations:
+            summary: "Высокая доля серверных ошибок API shop"
+            description: "Доля HTTP 5xx превысила заданный порог при достаточном числе бизнес-запросов. Health probes исключены."
+            runbook: "Проверить логи API, доступность PostgreSQL и последнее обновление приложения."
+        - alert: ShopApiHighLatency
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(shop_http_request_duration_seconds_bucket{namespace="{{ .Release.Namespace }}",service="{{ .Release.Name }}-api",route=~"/order|/orders"}[{{ .Values.monitoring.alerts.evaluationWindow }}]))
+            ) > {{ .Values.monitoring.alerts.latencySeconds }}
+            and
+            sum(increase(shop_http_request_duration_seconds_count{namespace="{{ .Release.Namespace }}",service="{{ .Release.Name }}-api",route=~"/order|/orders"}[{{ .Values.monitoring.alerts.evaluationWindow }}])) >= {{ .Values.monitoring.alerts.minRequests }}
+          for: {{ .Values.monitoring.alerts.for }}
+          labels:
+            severity: warning
+            namespace: {{ .Release.Namespace | quote }}
+            service: {{ printf "%s-api" .Release.Name | quote }}
+          annotations:
+            summary: "Высокая задержка API shop"
+            description: "p95 времени бизнес-запросов превышает заданный порог при достаточной нагрузке."
+            runbook: "Проверить ресурсы API и PostgreSQL, длительность SQL-запросов и текущую нагрузку."
+{{- end }}

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type order struct {
@@ -40,7 +41,9 @@ func main() {
 		}
 	}()
 
+	metrics := newAPIMetrics()
 	mux := http.NewServeMux()
+	mux.Handle("GET /metrics", promhttp.HandlerFor(metrics.registry, promhttp.HandlerOpts{}))
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		if strings.EqualFold(os.Getenv("HEALTH_FAIL"), "true") {
 			http.Error(w, "unhealthy", http.StatusServiceUnavailable)
@@ -91,7 +94,7 @@ func main() {
 	})
 
 	addr := envOr("API_ADDR", ":8080")
-	server := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	server := &http.Server{Addr: addr, Handler: metrics.handler(mux), ReadHeaderTimeout: 5 * time.Second}
 	log.Printf("api listening on %s", addr)
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("http server: %v", err)
