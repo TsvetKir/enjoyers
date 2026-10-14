@@ -1,0 +1,103 @@
+api:
+  replicaCount: 3
+  spread:
+    mode: topologySpreadConstraints
+    topologySpreadConstraints:
+      maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+    podAntiAffinity:
+      topologyKey: kubernetes.io/hostname
+      weight: 100
+  image:
+    repository: ghcr.io/kirill-lab/shop-api
+    tag: "1.2"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  health:
+    path: /health
+    initialDelaySeconds: 3
+    periodSeconds: 5
+  env:
+    databaseUrl: postgres://shop:shop@postgres-rw:5432/shop?sslmode=disable
+    healthFail: "false"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+worker:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/kirill-lab/shop-worker
+    tag: "1.0"
+    pullPolicy: IfNotPresent
+  service:
+    port: 8081
+  health:
+    path: /health
+    initialDelaySeconds: 3
+    periodSeconds: 5
+  env:
+    databaseUrl: postgres://shop:shop@postgres-rw:5432/shop?sslmode=disable
+    pollInterval: 2s
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+batch:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/kirill-lab/shop-batch
+    tag: "1.0"
+    pullPolicy: IfNotPresent
+  memoryMB: 128
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+postgres:
+  enabled: true
+  name: postgres
+  instances: 1
+  database: shop
+  owner: shop
+  credentialsSecret: shop-db-app
+  password: shop
+  storage:
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+monitoring:
+  enabled: true
+  releaseLabel: monitoring
+  interval: 15s
+  dashboard:
+    enabled: true
+  alerts:
+    enabled: true
+    unavailableFor: 1m
+    errorRate: 0.10
+    latencySeconds: 1
+    evaluationWindow: 2m
+    for: 2m
+    minRequests: 20

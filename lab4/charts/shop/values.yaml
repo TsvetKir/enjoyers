@@ -88,7 +88,7 @@ postgres:
       memory: 512Mi
 
 monitoring:
-  enabled: false
+  enabled: true
   releaseLabel: monitoring
   interval: 15s
   dashboard:
