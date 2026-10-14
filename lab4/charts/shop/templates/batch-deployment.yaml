@@ -15,6 +15,7 @@ spec:
       labels:
         {{- include "shop.podLabels" (dict "root" . "component" "batch") | nindent 8 }}
     spec:
+      priorityClassName: {{ .Values.priorityClasses.background.name | quote }}
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true

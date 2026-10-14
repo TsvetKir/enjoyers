@@ -6,6 +6,8 @@ metadata:
   labels:
     {{- include "shop.commonLabels" . | nindent 4 }}
 spec:
+  priorityClassName: {{ .Values.priorityClasses.critical.name | quote }}
+  enablePDB: {{ .Values.postgres.enablePDB }}
   instances: {{ .Values.postgres.instances }}
   inheritedMetadata:
     labels:

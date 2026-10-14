@@ -21,6 +21,7 @@ spec:
       labels:
         {{- include "shop.podLabels" (dict "root" . "component" "api") | nindent 8 }}
     spec:
+      priorityClassName: {{ .Values.priorityClasses.critical.name | quote }}
       automountServiceAccountToken: false
       {{- if eq .Values.api.spread.mode "topologySpreadConstraints" }}
       topologySpreadConstraints:
