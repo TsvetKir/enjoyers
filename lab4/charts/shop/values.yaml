@@ -25,11 +25,11 @@ api:
     healthFail: "false"
   resources:
     requests:
-      cpu: 100m
-      memory: 64Mi
+      cpu: 37m
+      memory: 100Mi
     limits:
-      cpu: 500m
-      memory: 256Mi
+      cpu: 37m
+      memory: 100Mi
 
 worker:
   replicaCount: 2
@@ -48,11 +48,11 @@ worker:
     pollInterval: 2s
   resources:
     requests:
-      cpu: 50m
-      memory: 32Mi
+      cpu: 38m
+      memory: 100Mi
     limits:
       cpu: 250m
-      memory: 128Mi
+      memory: 100Mi
 
 batch:
   replicaCount: 1
@@ -101,3 +101,13 @@ monitoring:
     evaluationWindow: 2m
     for: 2m
     minRequests: 20
+    
+priorityClasses:
+  critical:
+    name: lab4-shop-critical
+    value: 10000
+    preemptionPolicy: PreemptLowerPriority
+  background:
+    name: lab4-shop-background
+    value: -1000
+    preemptionPolicy: Never
