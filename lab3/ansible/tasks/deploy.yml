@@ -1,0 +1,72 @@
+- name: Install or upgrade Kyverno
+  kubernetes.core.helm:
+    name: kyverno
+    chart_ref: "{{ operator_archives.kyverno }}"
+    release_namespace: kyverno
+    create_namespace: true
+- name: Wait for Kyverno CRD
+  ansible.builtin.command:
+    argv: [kubectl, --kubeconfig, "{{ kubeconfig_file }}", --context, "{{ cluster_context }}", wait, --for=condition=Established, crd/clusterpolicies.kyverno.io, "--timeout={{ wait_timeout }}s"]
+  changed_when: false
+- name: Apply lab policies and wait for admission readiness
+  kubernetes.core.k8s:
+    state: present
+    apply: true
+    src: "{{ item }}"
+    wait: true
+    wait_condition:
+      type: Ready
+      status: 'True'
+    wait_timeout: "{{ wait_timeout }}"
+  loop: "{{ query('fileglob', lab3_dir + '/kyverno/policies/*.yaml') | sort }}"
+- name: Install or upgrade CloudNativePG
+  kubernetes.core.helm:
+    name: cnpg
+    chart_ref: "{{ operator_archives['cloudnative-pg'] }}"
+    release_namespace: cnpg-system
+    create_namespace: true
+    values_files:
+      - "{{ lab3_dir }}/cnpg-operator-values.yaml"
+- name: Wait for PostgreSQL CRD
+  ansible.builtin.command:
+    argv: [kubectl, --kubeconfig, "{{ kubeconfig_file }}", --context, "{{ cluster_context }}", wait, --for=condition=Established, crd/clusters.postgresql.cnpg.io, "--timeout={{ wait_timeout }}s"]
+  changed_when: false
+- name: Restore monitoring before shop creates ServiceMonitor resources
+  ansible.builtin.include_tasks: monitoring.yml
+  when: monitoring_enabled | bool
+- name: Enumerate chart files for change detection
+  ansible.builtin.find:
+    paths: "{{ lab3_dir }}/charts/shop"
+    recurse: true
+    file_type: file
+    hidden: true
+  register: chart_sources
+- name: Hash chart files so template-only edits trigger Helm upgrade
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+    checksum_algorithm: sha256
+  loop: "{{ chart_sources.files | sort(attribute='path') }}"
+  loop_control:
+    label: "{{ item.path }}"
+  register: chart_hashes
+- name: Install or upgrade shop from existing chart
+  kubernetes.core.helm:
+    name: shop
+    chart_ref: "{{ lab3_dir }}/charts/shop"
+    release_namespace: "{{ shop_namespace }}"
+    create_namespace: true
+    values:
+      monitoring:
+        enabled: "{{ monitoring_enabled | bool }}"
+      labAutomation:
+        chartChecksum: "{{ chart_hashes.results | map(attribute='stat.checksum') | list | to_json | hash('sha256') }}"
+      api:
+        image:
+          repository: "{{ image_repository_prefix }}-api"
+          tag: "{{ service_tags.api }}"
+          pullPolicy: IfNotPresent
+      worker:
+        image:
+          repository: "{{ image_repository_prefix }}-worker"
+          tag: "{{ service_tags.worker }}"
+          pullPolicy: IfNotPresent

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels:
+    {{- include "shop.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      {{- include "shop.selectorLabels" (dict "root" . "component" "worker") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "shop.podLabels" (dict "root" . "component" "worker") | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          ports:
+            - name: health
+              containerPort: {{ .Values.worker.service.port }}
+              protocol: TCP
+          env:
+            - name: WORKER_ADDR
+              value: ":{{ .Values.worker.service.port }}"
+            - name: DATABASE_URL
+              value: {{ .Values.worker.env.databaseUrl | quote }}
+            - name: POLL_INTERVAL
+              value: {{ .Values.worker.env.pollInterval | quote }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.worker.health.path }}
+              port: health
+            initialDelaySeconds: {{ .Values.worker.health.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.health.periodSeconds }}
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.worker.health.path }}
+              port: health
+            initialDelaySeconds: {{ .Values.worker.health.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.health.periodSeconds }}
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL

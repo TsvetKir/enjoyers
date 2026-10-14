@@ -1,0 +1,77 @@
+---
+- name: Deploy local Kubernetes lab 3
+  hosts: local
+  gather_facts: false
+  vars_files:
+    - settings.yml
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  environment:
+    KIND_EXPERIMENTAL_PROVIDER: docker
+  module_defaults:
+    kubernetes.core.helm:
+      kubeconfig: "{{ kubeconfig_file }}"
+      context: "{{ cluster_context }}"
+      wait: true
+      timeout: "{{ wait_timeout }}s"
+      reset_values: true
+    kubernetes.core.k8s:
+      kubeconfig: "{{ kubeconfig_file }}"
+      context: "{{ cluster_context }}"
+    kubernetes.core.k8s_info:
+      kubeconfig: "{{ kubeconfig_file }}"
+      context: "{{ cluster_context }}"
+  tasks:
+    - name: Validate local prerequisites without changing cluster
+      ansible.builtin.import_tasks: tasks/preflight.yml
+      tags: [preflight]
+
+    - name: Reject partial check mode on a fresh cluster
+      ansible.builtin.assert:
+        that: not ansible_check_mode
+        fail_msg: Use --syntax-check or --tags preflight; a fresh cluster cannot be simulated with --check.
+
+    - name: Create private state directory
+      ansible.builtin.file:
+        path: "{{ state_dir }}"
+        state: directory
+        mode: '0700'
+
+    - name: Acquire exclusive deployment lock
+      ansible.builtin.command:
+        argv: [mkdir, "{{ state_dir }}/run.lock"]
+      changed_when: true
+
+    - name: Deploy with lock cleanup on failure
+      block:
+        - name: Check Docker daemon
+          ansible.builtin.command: docker info
+          changed_when: false
+          no_log: true
+        - name: Prepare kind cluster
+          ansible.builtin.include_tasks: tasks/cluster.yml
+        - name: Build and load service images
+          ansible.builtin.include_tasks: tasks/image.yml
+          loop: [api, worker]
+          loop_control:
+            loop_var: component
+        - name: Cache operator charts
+          ansible.builtin.include_tasks: tasks/chart.yml
+          loop:
+            - name: kyverno
+              repo: https://kyverno.github.io/kyverno/
+              version: "{{ kyverno_version }}"
+            - name: cloudnative-pg
+              repo: https://cloudnative-pg.github.io/charts
+              version: "{{ cnpg_version }}"
+          loop_control:
+            loop_var: operator_chart
+        - name: Install policies, operators and application
+          ansible.builtin.include_tasks: tasks/deploy.yml
+        - name: Verify application resources
+          ansible.builtin.include_tasks: tasks/verify.yml
+      always:
+        - name: Release deployment lock
+          ansible.builtin.file:
+            path: "{{ state_dir }}/run.lock"
+            state: absent

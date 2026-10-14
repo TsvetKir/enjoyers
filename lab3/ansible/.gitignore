@@ -1,0 +1,5 @@
+.venv/
+.venv-previous/
+.collections/
+.ansible/
+.state/

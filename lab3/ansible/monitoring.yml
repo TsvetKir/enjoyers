@@ -1,0 +1,37 @@
+---
+- name: Restore lab2 monitoring for lab3
+  hosts: local
+  gather_facts: false
+  vars_files:
+    - settings.yml
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  environment:
+    KIND_EXPERIMENTAL_PROVIDER: docker
+  module_defaults:
+    kubernetes.core.helm:
+      kubeconfig: "{{ kubeconfig_file }}"
+      context: "{{ cluster_context }}"
+      wait: true
+      timeout: "{{ wait_timeout }}s"
+      reset_values: true
+    kubernetes.core.k8s:
+      kubeconfig: "{{ kubeconfig_file }}"
+      context: "{{ cluster_context }}"
+    kubernetes.core.k8s_info:
+      kubeconfig: "{{ kubeconfig_file }}"
+      context: "{{ cluster_context }}"
+  tasks:
+    - name: Acquire deployment lock
+      ansible.builtin.command:
+        argv: [mkdir, "{{ state_dir }}/run.lock"]
+      changed_when: true
+    - name: Restore monitoring
+      block:
+        - name: Install metrics stack
+          ansible.builtin.include_tasks: tasks/monitoring.yml
+      always:
+        - name: Release deployment lock
+          ansible.builtin.file:
+            path: "{{ state_dir }}/run.lock"
+            state: absent

@@ -1,0 +1,17 @@
+# Override using -e key=value or -e @your-settings.yml.
+lab3_dir: "{{ playbook_dir | dirname }}"
+cluster_name: lab3
+shop_namespace: shop
+state_dir: "{{ playbook_dir }}/.state/{{ cluster_name }}"
+kubeconfig_file: "{{ state_dir }}/kubeconfig"
+cluster_context: "kind-{{ cluster_name }}"
+wait_timeout: 600
+# Empty = kind's default for first creation. Recorded and reused afterwards.
+kind_node_image: ""
+# Empty = resolve once and cache chart archive; set explicit chart versions to upgrade.
+kyverno_version: ""
+cnpg_version: ""
+image_repository_prefix: ghcr.io/kirill-lab/shop
+
+monitoring_enabled: true
+monitoring_version: "92.3.0"

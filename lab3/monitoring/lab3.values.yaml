@@ -1,0 +1,160 @@
+commonLabels: &id001
+  app.kubernetes.io/part-of: monitoring
+nodeExporter:
+  enabled: false
+grafana:
+  additionalDataSources: []
+  initChownData:
+    enabled: false
+  podLabels: *id001
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  containerSecurityContext: &id002
+    runAsNonRoot: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+  sidecar:
+    securityContext: *id002
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+    dashboards:
+      searchNamespace: ALL
+kube-state-metrics:
+  podLabels: *id001
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  containerSecurityContext: *id002
+prometheusOperator:
+  podLabels: *id001
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  containerSecurityContext: *id002
+  prometheusConfigReloader:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+  admissionWebhooks:
+    patch:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+    createSecretJob:
+      securityContext: *id002
+    patchWebhookJob:
+      securityContext: *id002
+alertmanager:
+  config:
+    route:
+      receiver: 'null'
+      routes: []
+    receivers:
+    - name: 'null'
+  alertmanagerSpec:
+    podMetadata:
+      labels: *id001
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+    containers:
+    - name: alertmanager
+      securityContext: *id002
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 500m
+          memory: 128Mi
+    - name: config-reloader
+      securityContext: *id002
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 500m
+          memory: 128Mi
+    initContainers: &id003
+    - name: init-config-reloader
+      securityContext: *id002
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 500m
+          memory: 128Mi
+prometheus:
+  prometheusSpec:
+    podMetadata:
+      labels: *id001
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    containers:
+    - name: prometheus
+      securityContext: *id002
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    - name: config-reloader
+      securityContext: *id002
+      resources:
+        requests:
+          cpu: 25m
+          memory: 32Mi
+        limits:
+          cpu: 500m
+          memory: 128Mi
+    initContainers: *id003
+    serviceMonitorNamespaceSelector: {}
+    serviceMonitorSelector:
+      matchLabels:
+        release: monitoring
+    ruleNamespaceSelector: {}
+    ruleSelector:
+      matchLabels:
+        release: monitoring

@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: control-plane-probe
+  namespace: local-path-storage
+  labels:
+    app.kubernetes.io/name: control-plane-probe
+    app.kubernetes.io/part-of: shop
+spec:
+  automountServiceAccountToken: false
+  restartPolicy: Never
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: probe
+      image: curlimages/curl:8.21.0
+      imagePullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -c
+      args:
+        - |
+          probe() {
+            name="$1"
+            url="$2"
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 "$url" 2>/dev/null)" || code="FAILED"
+            printf '%s=%s ' "$name" "$code"
+          }
+          while true; do
+            printf '%s ' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            probe api-health http://shop-api.default.svc.cluster.local:8080/health
+            probe api-orders http://shop-api.default.svc.cluster.local:8080/orders
+            probe worker-health http://shop-worker.default.svc.cluster.local:8081/health
+            printf '\n'
+            sleep 2
+          done
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        runAsNonRoot: true
+        runAsUser: 1000
+        capabilities:
+          drop:
+            - ALL

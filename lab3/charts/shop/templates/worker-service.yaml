@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels:
+    {{- include "shop.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "shop.selectorLabels" (dict "root" . "component" "worker") | nindent 4 }}
+  ports:
+    - name: health
+      port: {{ .Values.worker.service.port }}
+      targetPort: health
+      protocol: TCP

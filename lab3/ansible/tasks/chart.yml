@@ -1,0 +1,32 @@
+- name: Select cache directory for requested chart version
+  ansible.builtin.set_fact:
+    chart_cache_dir: "{{ state_dir }}/charts/{{ operator_chart.name }}/{{ operator_chart.version or 'initial' }}"
+- name: Validate chart version before using as path
+  ansible.builtin.assert:
+    that: operator_chart.version is match('^[a-zA-Z0-9.+-]*$')
+- name: Create chart cache directory
+  ansible.builtin.file:
+    path: "{{ chart_cache_dir }}"
+    state: directory
+    mode: '0700'
+- name: Find previously downloaded archive
+  ansible.builtin.find:
+    paths: "{{ chart_cache_dir }}"
+    patterns: '*.tgz'
+  register: cached_charts
+- name: Download chart once
+  ansible.builtin.command:
+    argv: "{{ ['helm', 'pull', operator_chart.name, '--repo', operator_chart.repo, '--destination', chart_cache_dir] + (['--version', operator_chart.version] if operator_chart.version else []) }}"
+  when: cached_charts.matched == 0
+  changed_when: true
+- name: Find downloaded chart archive
+  ansible.builtin.find:
+    paths: "{{ chart_cache_dir }}"
+    patterns: '*.tgz'
+  register: chart_archives
+- name: Require exactly one chart archive
+  ansible.builtin.assert:
+    that: chart_archives.matched == 1
+- name: Remember archive path
+  ansible.builtin.set_fact:
+    operator_archives: "{{ operator_archives | default({}) | combine({operator_chart.name: chart_archives.files[0].path}) }}"
