@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-batch
+  labels:
+    {{- include "shop.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: batch
+spec:
+  replicas: {{ .Values.batch.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "shop.selectorLabels" (dict "root" . "component" "batch") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "shop.podLabels" (dict "root" . "component" "batch") | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: batch
+          image: "{{ .Values.batch.image.repository }}:{{ .Values.batch.image.tag }}"
+          imagePullPolicy: {{ .Values.batch.image.pullPolicy }}
+          env:
+            - name: BATCH_MEMORY_MB
+              value: {{ .Values.batch.memoryMB | quote }}
+          resources:
+            {{- toYaml .Values.batch.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
