@@ -28,10 +28,10 @@ api:
     healthFail: "false"
   resources:
     requests:
-      cpu: 37m
+      cpu: 100m
       memory: 100Mi
     limits:
-      cpu: 37m
+      cpu: 100m
       memory: 100Mi
 
 worker:
@@ -65,14 +65,14 @@ batch:
     pullPolicy: IfNotPresent
   nodeSelector:
     kubernetes.io/hostname: lab4-worker
-  memoryMB: 768
+  memoryMB: 128
   resources:
     requests:
       cpu: 100m
       memory: 64Mi
     limits:
       cpu: 500m
-      memory: 1Gi
+      memory: 256Mi
 
 postgres:
   enabled: true

@@ -1,0 +1,137 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  count: 1
+  eventTime: null
+  firstTimestamp: "2026-10-15T20:38:29Z"
+  involvedObject:
+    apiVersion: v1
+    kind: Pod
+    name: shop-batch-69c4866d9d-g822b
+    namespace: shop
+    resourceVersion: "73655"
+    uid: aa6bd006-a4f1-4b70-8c9f-029eb04ddf6e
+  kind: Event
+  lastTimestamp: "2026-10-15T20:38:29Z"
+  message: 'The node was low on resource: memory. Threshold quantity: 5500Mi, available:
+    5564984Ki. Container batch was using 1188040Ki, request is 64Mi, has larger consumption
+    of memory. '
+  metadata:
+    annotations:
+      offending_containers: batch
+      offending_containers_usage: 1188040Ki
+      starved_resource: memory
+    creationTimestamp: "2026-10-15T20:38:29Z"
+    name: shop-batch-69c4866d9d-g822b.18dece764bbfc20e
+    namespace: shop
+    resourceVersion: "73843"
+    uid: e5ccab95-fb7f-4880-a3c4-075b477533dc
+  reason: Evicted
+  reportingComponent: kubelet
+  reportingInstance: lab4-worker
+  source:
+    component: kubelet
+    host: lab4-worker
+  type: Warning
+- apiVersion: v1
+  count: 1
+  eventTime: null
+  firstTimestamp: "2026-10-15T20:28:28Z"
+  involvedObject:
+    apiVersion: v1
+    kind: Pod
+    name: shop-batch-69c4866d9d-gc2km
+    namespace: shop
+    resourceVersion: "70491"
+    uid: b331d623-9f2d-4c5d-ac4c-17f98076c282
+  kind: Event
+  lastTimestamp: "2026-10-15T20:28:28Z"
+  message: 'The node was low on resource: memory. Threshold quantity: 5500Mi, available:
+    5507076Ki. Container batch was using 1185440Ki, request is 64Mi, has larger consumption
+    of memory. '
+  metadata:
+    annotations:
+      offending_containers: batch
+      offending_containers_usage: 1185440Ki
+      starved_resource: memory
+    creationTimestamp: "2026-10-15T20:28:28Z"
+    name: shop-batch-69c4866d9d-gc2km.18decdea7953dc54
+    namespace: shop
+    resourceVersion: "70740"
+    uid: efeb7446-d48d-4605-a393-759d765b77a0
+  reason: Evicted
+  reportingComponent: kubelet
+  reportingInstance: lab4-worker
+  source:
+    component: kubelet
+    host: lab4-worker
+  type: Warning
+- apiVersion: v1
+  count: 1
+  eventTime: null
+  firstTimestamp: "2026-10-15T19:43:02Z"
+  involvedObject:
+    apiVersion: v1
+    kind: Pod
+    name: shop-batch-bdd7bff99-r7dvg
+    namespace: shop
+    resourceVersion: "60607"
+    uid: 25230bfc-d9c5-4ff7-bfe1-493ddf36515c
+  kind: Event
+  lastTimestamp: "2026-10-15T19:43:02Z"
+  message: 'The node was low on resource: memory. Threshold quantity: 5500Mi, available:
+    5551204Ki. Container batch was using 791076Ki, request is 64Mi, has larger consumption
+    of memory. '
+  metadata:
+    annotations:
+      offending_containers: batch
+      offending_containers_usage: 791076Ki
+      starved_resource: memory
+    creationTimestamp: "2026-10-15T19:43:02Z"
+    name: shop-batch-bdd7bff99-r7dvg.18decb6fc17637d6
+    namespace: shop
+    resourceVersion: "60807"
+    uid: 4d3fb612-548a-4d1c-9d83-be0d27cd5fb4
+  reason: Evicted
+  reportingComponent: kubelet
+  reportingInstance: lab4-worker
+  source:
+    component: kubelet
+    host: lab4-worker
+  type: Warning
+- apiVersion: v1
+  count: 1
+  eventTime: null
+  firstTimestamp: "2026-10-15T19:20:25Z"
+  involvedObject:
+    apiVersion: v1
+    kind: Pod
+    name: shop-batch-c94c5b485-4ntwh
+    namespace: shop
+    resourceVersion: "50961"
+    uid: 4dbba3ce-e7e8-4d9d-8b8d-b2773ef003af
+  kind: Event
+  lastTimestamp: "2026-10-15T19:20:25Z"
+  message: 'The node was low on resource: memory. Threshold quantity: 5500Mi, available:
+    5630360Ki. Container batch was using 135448Ki, request is 64Mi, has larger consumption
+    of memory. '
+  metadata:
+    annotations:
+      offending_containers: batch
+      offending_containers_usage: 135448Ki
+      starved_resource: memory
+    creationTimestamp: "2026-10-15T19:20:25Z"
+    name: shop-batch-c94c5b485-4ntwh.18deca33b8aa6058
+    namespace: shop
+    resourceVersion: "55543"
+    uid: af02bd24-af21-41ba-9dee-934a0ff15b58
+  reason: Evicted
+  reportingComponent: kubelet
+  reportingInstance: lab4-worker
+  source:
+    component: kubelet
+    host: lab4-worker
+  type: Warning
+kind: List
+metadata:
+  resourceVersion: ""
