@@ -17,6 +17,10 @@ spec:
     spec:
       priorityClassName: {{ .Values.priorityClasses.background.name | quote }}
       automountServiceAccountToken: false
+      {{- with .Values.batch.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         runAsNonRoot: true
         seccompProfile:

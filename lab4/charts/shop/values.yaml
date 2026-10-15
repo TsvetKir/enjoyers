@@ -63,14 +63,16 @@ batch:
     repository: ghcr.io/kirill-lab/shop-batch
     tag: "1.0"
     pullPolicy: IfNotPresent
-  memoryMB: 128
+  nodeSelector:
+    kubernetes.io/hostname: lab4-worker
+  memoryMB: 768
   resources:
     requests:
       cpu: 100m
       memory: 64Mi
     limits:
       cpu: 500m
-      memory: 256Mi
+      memory: 1Gi
 
 postgres:
   enabled: true
