@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 # docker compose exec ollama ollama pull qwen3:1.7b
 # export OLLAMA_URL=http://ollama:11434
 
-mkdir -p outputs evidence
+mkdir -p outputs
 export LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)"
 docker compose up -d --build
 for i in {1..180}; do
@@ -15,10 +15,8 @@ for i in {1..180}; do
   sleep 2
 done
 curl -fsS http://localhost:15678/healthz >/dev/null
-docker compose exec -T n8n n8n import:workflow --input=/workflows/release-readiness.json
+docker compose exec -T n8n n8n import:workflow --input=/workflows/release-readiness.export.json
 docker compose exec -T n8n n8n update:workflow --id=lab8ReleaseReview --active=true
-docker compose exec -T n8n n8n export:workflow --id=lab8ReleaseReview --output=/tmp/release-readiness.export.json --pretty
-docker compose cp n8n:/tmp/release-readiness.export.json workflows/release-readiness.export.json
 docker compose restart n8n
 for i in {1..180}; do
   if curl -fsS http://localhost:15678/healthz >/dev/null 2>&1; then break; fi
