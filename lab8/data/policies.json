@@ -1,0 +1,1 @@
+{"checkout":{"service":"checkout","required_checks":["unit","integration","security"],"minimum_coverage_percent":85,"blocking_severities":["critical","high"],"require_migration_rollback":true,"policy_version":"2026-10-15","note":"All required CI checks pass, coverage at least 85%, no unresolved high/critical risks; database migrations require documented rollback."}}

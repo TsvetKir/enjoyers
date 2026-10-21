@@ -1,0 +1,88 @@
+# HELP python_gc_objects_collected_total Objects collected during gc
+# TYPE python_gc_objects_collected_total counter
+python_gc_objects_collected_total{generation="0"} 1828.0
+python_gc_objects_collected_total{generation="1"} 179.0
+python_gc_objects_collected_total{generation="2"} 0.0
+# HELP python_gc_objects_uncollectable_total Uncollectable objects found during GC
+# TYPE python_gc_objects_uncollectable_total counter
+python_gc_objects_uncollectable_total{generation="0"} 0.0
+python_gc_objects_uncollectable_total{generation="1"} 0.0
+python_gc_objects_uncollectable_total{generation="2"} 0.0
+# HELP python_gc_collections_total Number of times this generation was collected
+# TYPE python_gc_collections_total counter
+python_gc_collections_total{generation="0"} 153.0
+python_gc_collections_total{generation="1"} 13.0
+python_gc_collections_total{generation="2"} 1.0
+# HELP python_info Python platform information
+# TYPE python_info gauge
+python_info{implementation="CPython",major="3",minor="12",patchlevel="15",version="3.12.15"} 1.0
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 2.29941248e+08
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 6.1489152e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.79260848215e+09
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 17.54
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 10.0
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.048576e+06
+# HELP release_reviews_total Completed review attempts
+# TYPE release_reviews_total counter
+release_reviews_total{status="ready"} 0.0
+release_reviews_total{status="blocked"} 1.0
+release_reviews_total{status="error"} 0.0
+# HELP release_reviews_created Completed review attempts
+# TYPE release_reviews_created gauge
+release_reviews_created{status="ready"} 1.7926084900762868e+09
+release_reviews_created{status="blocked"} 1.7926084900763075e+09
+release_reviews_created{status="error"} 1.7926084900763197e+09
+# HELP release_review_duration_seconds Wall clock review duration
+# TYPE release_review_duration_seconds histogram
+release_review_duration_seconds_bucket{le="1.0"} 0.0
+release_review_duration_seconds_bucket{le="5.0"} 0.0
+release_review_duration_seconds_bucket{le="10.0"} 0.0
+release_review_duration_seconds_bucket{le="30.0"} 0.0
+release_review_duration_seconds_bucket{le="60.0"} 0.0
+release_review_duration_seconds_bucket{le="120.0"} 1.0
+release_review_duration_seconds_bucket{le="300.0"} 1.0
+release_review_duration_seconds_bucket{le="600.0"} 1.0
+release_review_duration_seconds_bucket{le="+Inf"} 1.0
+release_review_duration_seconds_count 1.0
+release_review_duration_seconds_sum 93.80103533500005
+# HELP release_review_duration_seconds_created Wall clock review duration
+# TYPE release_review_duration_seconds_created gauge
+release_review_duration_seconds_created 1.7926084900761375e+09
+# HELP mcp_tool_calls_total MCP tool calls
+# TYPE mcp_tool_calls_total counter
+mcp_tool_calls_total{server="repo",status="success",tool="get_release_changes"} 1.0
+mcp_tool_calls_total{server="repo",status="success",tool="get_ci_status"} 1.0
+mcp_tool_calls_total{server="knowledge",status="success",tool="get_release_policy"} 1.0
+mcp_tool_calls_total{server="knowledge",status="success",tool="get_known_risks"} 1.0
+# HELP mcp_tool_calls_created MCP tool calls
+# TYPE mcp_tool_calls_created gauge
+mcp_tool_calls_created{server="repo",status="success",tool="get_release_changes"} 1.7926085502954094e+09
+mcp_tool_calls_created{server="repo",status="success",tool="get_ci_status"} 1.7926085503629386e+09
+mcp_tool_calls_created{server="knowledge",status="success",tool="get_release_policy"} 1.7926085505941424e+09
+mcp_tool_calls_created{server="knowledge",status="success",tool="get_known_risks"} 1.7926085506317494e+09
+# HELP ai_model_calls_total Ollama inference calls
+# TYPE ai_model_calls_total counter
+ai_model_calls_total{status="success"} 2.0
+# HELP ai_model_calls_created Ollama inference calls
+# TYPE ai_model_calls_created gauge
+ai_model_calls_created{status="success"} 1.7926085493691437e+09
+# HELP ai_model_tokens_total Ollama reported tokens
+# TYPE ai_model_tokens_total counter
+ai_model_tokens_total{kind="input"} 1246.0
+ai_model_tokens_total{kind="output"} 477.0
+# HELP ai_model_tokens_created Ollama reported tokens
+# TYPE ai_model_tokens_created gauge
+ai_model_tokens_created{kind="input"} 1.7926085493692846e+09
+ai_model_tokens_created{kind="output"} 1.7926085493746583e+09

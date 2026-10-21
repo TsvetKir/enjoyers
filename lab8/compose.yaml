@@ -1,0 +1,65 @@
+name: lab8-release
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:1.117.3
+    ports: ["127.0.0.1:15678:5678"]
+    environment:
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      N8N_METRICS: "true"
+      N8N_SECURE_COOKIE: "false"
+      GENERIC_TIMEZONE: Europe/Moscow
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+    volumes:
+      - n8n-data:/home/node/.n8n
+      - ./workflows:/workflows
+    depends_on: [agent]
+  agent:
+    build: .
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    command: ["uvicorn", "app.agent:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports: ["127.0.0.1:18088:8000"]
+    environment:
+      MCP_REPO_URL: http://mcp-repo:8001/mcp
+      MCP_KNOWLEDGE_URL: http://mcp-knowledge:8002/mcp
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      MODEL: qwen3:1.7b
+      OUTPUT_DIR: /outputs
+    volumes: ["./outputs:/outputs"]
+    depends_on: [mcp-repo, mcp-knowledge]
+  mcp-repo:
+    build: .
+    command: ["python", "-m", "app.mcp_repo"]
+  mcp-knowledge:
+    build: .
+    command: ["python", "-m", "app.mcp_knowledge"]
+  ollama:
+    profiles: [container-model]
+    image: ollama/ollama:0.11.4
+    volumes: ["ollama-data:/root/.ollama"]
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    ports: ["127.0.0.1:19098:9090"]
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+  grafana:
+    image: grafana/grafana:12.1.1
+    ports: ["127.0.0.1:13008:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on: [prometheus]
+volumes:
+  n8n-data:
+  ollama-data:
+  prometheus-data:
+  grafana-data:

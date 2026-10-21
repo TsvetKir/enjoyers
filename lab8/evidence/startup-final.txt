@@ -1,0 +1,202 @@
+ Service mcp-repo  Building
+ Service mcp-knowledge  Building
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [mcp-knowledge internal] load build definition from Dockerfile
+#1 transferring dockerfile: 479B 0.0s done
+#1 DONE 0.2s
+
+#2 [mcp-repo internal] load build definition from Dockerfile
+#2 transferring dockerfile: 479B 0.0s done
+#2 DONE 0.2s
+
+#3 [mcp-repo internal] load metadata for docker.io/library/python:3.12-slim
+#3 ...
+
+#4 [mcp-knowledge auth] library/python:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#3 [mcp-repo internal] load metadata for docker.io/library/python:3.12-slim
+#3 DONE 3.6s
+
+#5 [mcp-repo internal] load .dockerignore
+#5 DONE 0.0s
+
+#6 [mcp-knowledge internal] load .dockerignore
+#6 transferring context:
+#6 transferring context: 153B 0.1s done
+#6 DONE 0.7s
+
+#5 [mcp-repo internal] load .dockerignore
+#5 transferring context: 153B 0.0s done
+#5 DONE 0.7s
+
+#7 [mcp-knowledge internal] load build context
+#7 DONE 0.0s
+
+#8 [mcp-repo 1/8] FROM docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2
+#8 resolve docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2
+#8 ...
+
+#9 [mcp-repo internal] load build context
+#9 DONE 0.0s
+
+#8 [mcp-repo 1/8] FROM docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2
+#8 resolve docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2 0.2s done
+#8 resolve docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2 0.2s done
+#8 DONE 0.3s
+
+#9 [mcp-repo internal] load build context
+#9 transferring context: 34.32kB 0.1s done
+#9 DONE 0.5s
+
+#7 [mcp-knowledge internal] load build context
+#7 transferring context: 34.32kB 0.0s done
+#7 DONE 0.6s
+
+#10 [mcp-repo 3/8] COPY requirements.txt .
+#10 CACHED
+
+#11 [mcp-repo 2/8] WORKDIR /app
+#11 CACHED
+
+#12 [mcp-knowledge 4/8] RUN pip install --no-cache-dir -r requirements.txt
+#12 CACHED
+
+#13 [mcp-repo 5/8] COPY app ./app
+#13 DONE 0.1s
+
+#14 [mcp-repo 6/8] COPY data ./data
+#14 DONE 0.3s
+
+#15 [mcp-repo 7/8] COPY skills ./skills
+#15 DONE 0.4s
+
+#16 [mcp-repo 8/8] RUN mkdir /outputs && useradd --uid 10001 --create-home agent && chown agent:agent /outputs
+#16 DONE 0.5s
+
+#17 [mcp-repo] exporting to image
+#17 exporting layers
+#17 exporting layers 0.5s done
+#17 exporting manifest sha256:e2dfba6df0888d8022e256456d436470fd3ad97b0bba3b66b0ca1e7d2cc1e166
+#17 exporting manifest sha256:e2dfba6df0888d8022e256456d436470fd3ad97b0bba3b66b0ca1e7d2cc1e166 0.2s done
+#17 exporting config sha256:a630b88ac40e8f1bc96eaf3b788705bcbcaba12b5dde3ed38b5016d7ae4d92e6
+#17 exporting config sha256:a630b88ac40e8f1bc96eaf3b788705bcbcaba12b5dde3ed38b5016d7ae4d92e6 0.1s done
+#17 exporting attestation manifest sha256:3d6e3906e73bcad3c1cef0a49861a0b1c93a2df561edfcecfebfc011fc8fb701
+#17 exporting attestation manifest sha256:3d6e3906e73bcad3c1cef0a49861a0b1c93a2df561edfcecfebfc011fc8fb701 0.1s done
+#17 exporting manifest list sha256:dfd84a04923b0e8217ebe28326eacc5f06543beb9cc58cd0565145f8772a32f3 0.0s done
+#17 naming to docker.io/library/lab8-release-mcp-repo:latest done
+#17 unpacking to docker.io/library/lab8-release-mcp-repo:latest
+#17 unpacking to docker.io/library/lab8-release-mcp-repo:latest 0.2s done
+#17 DONE 1.3s
+
+#18 [mcp-knowledge] exporting to image
+#18 exporting layers 0.4s done
+#18 exporting manifest sha256:d9723f6c885c310749b13b8e3f4af9b57f8e95154389d1d3c7011f570d711fb2 0.2s done
+#18 exporting config sha256:06cf6e725628aaccb8c425a59b472deab97f56f631ed37f177f80a1ab780251c 0.2s done
+#18 exporting attestation manifest sha256:2d9dd2bccbda7dd7688ec9d0980944be5c03886fb1dd26e8be82310e6b640dea 0.1s done
+#18 exporting manifest list sha256:09868b3a7c9600f4e569215bab2e271621c256310b189cc95dba72c533b3d150 0.0s done
+#18 naming to docker.io/library/lab8-release-mcp-knowledge:latest 0.0s done
+#18 unpacking to docker.io/library/lab8-release-mcp-knowledge:latest 0.2s done
+#18 DONE 1.3s
+
+#19 [mcp-knowledge] resolving provenance for metadata file
+ Service mcp-knowledge  Built
+ Service mcp-repo  Built
+ Service agent  Building
+#19 DONE 0.0s
+
+#20 [mcp-repo] resolving provenance for metadata file
+#20 DONE 0.0s
+
+#21 [agent internal] load build definition from Dockerfile
+#21 transferring dockerfile: 479B done
+#21 DONE 0.0s
+
+#3 [agent internal] load metadata for docker.io/library/python:3.12-slim
+#3 DONE 4.2s
+
+#22 [agent internal] load .dockerignore
+#22 transferring context: 153B done
+#22 DONE 0.0s
+
+#8 [agent 1/8] FROM docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2
+#8 resolve docker.io/library/python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2 0.0s done
+#8 DONE 0.3s
+
+#23 [agent internal] load build context
+#23 transferring context: 1.57kB done
+#23 DONE 0.0s
+
+#24 [agent 3/8] COPY requirements.txt .
+#24 CACHED
+
+#25 [agent 6/8] COPY data ./data
+#25 CACHED
+
+#26 [agent 5/8] COPY app ./app
+#26 CACHED
+
+#27 [agent 7/8] COPY skills ./skills
+#27 CACHED
+
+#11 [agent 2/8] WORKDIR /app
+#11 CACHED
+
+#28 [agent 4/8] RUN pip install --no-cache-dir -r requirements.txt
+#28 CACHED
+
+#29 [agent 8/8] RUN mkdir /outputs && useradd --uid 10001 --create-home agent && chown agent:agent /outputs
+#29 CACHED
+
+#30 [agent] exporting to image
+#30 exporting layers done
+#30 exporting manifest sha256:2029d9fea644db9525536dbe32688068d26c2e36efa2dbcecd3b209a210c8fef done
+#30 exporting config sha256:c2d6e45b6d4b57322d19af3687dd1de3f60297b0ae021b04a22c667bb9cfd252 done
+#30 exporting attestation manifest sha256:8645638e12ede97ba10c5fe95dfde023924eeffe1bbd51e14818a6eaca55c633 0.0s done
+#30 exporting manifest list sha256:5789688c4f3a8b85cd4ffebb54503512ca8d02c902ffe4b88fbb2adec66477a6 done
+#30 naming to docker.io/library/lab8-release-agent:latest done
+#30 unpacking to docker.io/library/lab8-release-agent:latest done
+#30 DONE 0.1s
+
+#31 [agent] resolving provenance for metadata file
+ Service agent  Built
+#31 DONE 0.0s
+ Container lab8-release-prometheus-1  Running
+ Container lab8-release-grafana-1  Running
+ Container lab8-release-agent-1  Stopping
+ Container lab8-release-agent-1  Stopping
+ Container lab8-release-agent-1  Stopped
+ Container lab8-release-agent-1  Stopped
+ Container lab8-release-mcp-knowledge-1  Recreate
+ Container lab8-release-mcp-repo-1  Recreate
+ Container lab8-release-mcp-repo-1  Recreated
+ Container lab8-release-mcp-knowledge-1  Recreated
+ Container lab8-release-n8n-1  Stopping
+ Container lab8-release-n8n-1  Stopped
+ Container lab8-release-agent-1  Recreate
+ Container lab8-release-agent-1  Recreated
+ Container lab8-release-n8n-1  Created
+ Container lab8-release-mcp-repo-1  Starting
+ Container lab8-release-mcp-knowledge-1  Starting
+ Container lab8-release-mcp-knowledge-1  Started
+ Container lab8-release-mcp-repo-1  Started
+ Container lab8-release-agent-1  Starting
+ Container lab8-release-agent-1  Started
+ Container lab8-release-n8n-1  Starting
+ Container lab8-release-n8n-1  Started
+Error tracking disabled because this release is older than 6 weeks.
+Importing 1 workflows...
+Successfully imported 1 workflow.
+Error tracking disabled because this release is older than 6 weeks.
+Activating workflow with ID: lab8ReleaseReview
+Activation or deactivation will not take effect if n8n is running.
+Please restart n8n for changes to take effect if n8n is currently running.
+Error tracking disabled because this release is older than 6 weeks.
+Successfully exported 1 workflow.
+ lab8-release-n8n-1 copy lab8-release-n8n-1:/tmp/release-readiness.export.json to workflows/release-readiness.export.json Copying
+ lab8-release-n8n-1 copy lab8-release-n8n-1:/tmp/release-readiness.export.json to workflows/release-readiness.export.json Copied
+ Container lab8-release-n8n-1  Restarting
+ Container lab8-release-n8n-1  Started
+n8n: http://localhost:15678
+Grafana: http://localhost:13008/d/lab8-release

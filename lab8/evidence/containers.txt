@@ -1,0 +1,7 @@
+NAME                           IMAGE                             COMMAND                  SERVICE         CREATED          STATUS          PORTS
+lab8-release-agent-1           lab8-release-agent                "uvicorn app.agent:a…"   agent           5 minutes ago    Up 5 minutes    8001-8002/tcp, 127.0.0.1:18088->8000/tcp
+lab8-release-grafana-1         grafana/grafana:12.1.1            "/run.sh"                grafana         14 minutes ago   Up 13 minutes   127.0.0.1:13008->3000/tcp
+lab8-release-mcp-knowledge-1   lab8-release-mcp-knowledge        "python -m app.mcp_k…"   mcp-knowledge   5 minutes ago    Up 5 minutes    8000-8002/tcp
+lab8-release-mcp-repo-1        lab8-release-mcp-repo             "python -m app.mcp_r…"   mcp-repo        5 minutes ago    Up 5 minutes    8000-8002/tcp
+lab8-release-n8n-1             docker.n8n.io/n8nio/n8n:1.117.3   "tini -- /docker-ent…"   n8n             10 minutes ago   Up 4 minutes    127.0.0.1:15678->5678/tcp
+lab8-release-prometheus-1      prom/prometheus:v3.5.0            "/bin/prometheus --c…"   prometheus      14 minutes ago   Up 14 minutes   127.0.0.1:19098->9090/tcp

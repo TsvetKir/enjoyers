@@ -1,0 +1,12 @@
+{
+  "2026.10.1": {
+    "changes": {"release":"2026.10.1","service":"checkout","commits":[{"id":"a71d02c","summary":"Add asynchronous payment capture"},{"id":"b39e82f","summary":"Create payment_attempts table"}],"migration":true,"rollback_documented":false,"owner":"checkout-team"},
+    "ci": {"release":"2026.10.1","checks":{"unit":"passed","integration":"failed","security":"passed"},"coverage_percent":83.4,"integration_detail":"Payment gateway timeout retry creates duplicate capture"},
+    "risks": {"release":"2026.10.1","risks":[{"id":"PAY-142","severity":"critical","resolved":false,"description":"Duplicate capture when payment gateway responds after retry"},{"id":"OPS-52","severity":"medium","resolved":false,"description":"Dashboard lacks retry backlog panel"}]}
+  },
+  "2026.10.2": {
+    "changes": {"release":"2026.10.2","service":"checkout","commits":[{"id":"c84d13a","summary":"Add idempotency key for payment capture"},{"id":"d09ef12","summary":"Add migration rollback and retry dashboard"}],"migration":true,"rollback_documented":true,"owner":"checkout-team"},
+    "ci": {"release":"2026.10.2","checks":{"unit":"passed","integration":"passed","security":"passed"},"coverage_percent":89.1,"integration_detail":"Retry and timeout scenarios passed"},
+    "risks": {"release":"2026.10.2","risks":[{"id":"PAY-142","severity":"critical","resolved":true,"description":"Idempotency key prevents duplicate capture"},{"id":"OPS-52","severity":"medium","resolved":true,"description":"Retry backlog panel added"},{"id":"UX-11","severity":"low","resolved":false,"description":"Receipt email can arrive up to 30 seconds late"}]}
+  }
+}
