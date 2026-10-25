@@ -1,0 +1,84 @@
+api:
+  replicaCount: 3
+  pdb:
+    enabled: true
+    minAvailable: 2
+  spread:
+    mode: topologySpreadConstraints
+    topologySpreadConstraints:
+      maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+    podAntiAffinity:
+      topologyKey: kubernetes.io/hostname
+      weight: 100
+  image:
+    repository: ghcr.io/kirill-lab/shop-api
+    tag: "1.2"
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30080
+  health:
+    path: /health
+    initialDelaySeconds: 3
+    periodSeconds: 5
+  env:
+    databaseUrl: postgres://shop:shop@postgres-rw:5432/shop?sslmode=disable
+    healthFail: "false"
+  resources:
+    requests: {cpu: 100m, memory: 100Mi}
+    limits: {cpu: 100m, memory: 100Mi}
+
+worker:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/kirill-lab/shop-worker
+    tag: "1.0"
+    pullPolicy: IfNotPresent
+  service:
+    port: 8081
+  health:
+    path: /health
+    initialDelaySeconds: 3
+    periodSeconds: 5
+  env:
+    databaseUrl: postgres://shop:shop@postgres-rw:5432/shop?sslmode=disable
+    pollInterval: 2s
+  resources:
+    requests: {cpu: 38m, memory: 100Mi}
+    limits: {cpu: 250m, memory: 100Mi}
+
+postgres:
+  enabled: true
+  name: postgres
+  instances: 1
+  enablePDB: true
+  database: shop
+  owner: shop
+  credentialsSecret: shop-db-app
+  password: shop
+  storage:
+    size: 1Gi
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+networkPolicy:
+  enabled: true
+  podCIDR: 10.0.0.0/23
+  externalCIDR: 0.0.0.0/0
+  ports:
+    api: 8080
+    postgres: 5432
+    dns: 53
+  dns:
+    namespace: kube-system
+    podLabel: k8s-app
+    podValue: kube-dns
+priorityClasses:
+  critical:
+    name: lab5-shop-critical
+    value: 10000
+    preemptionPolicy: PreemptLowerPriority

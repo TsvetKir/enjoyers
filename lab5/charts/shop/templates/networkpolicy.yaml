@@ -1,0 +1,108 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-default-deny
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-dns-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: shop
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.dns.namespace | quote }}
+          podSelector:
+            matchLabels:
+              {{ .Values.networkPolicy.dns.podLabel }}: {{ .Values.networkPolicy.dns.podValue | quote }}
+      ports:
+        - {protocol: UDP, port: {{ .Values.networkPolicy.ports.dns }}}
+        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.dns }}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-api-ingress
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/component: api}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/component: client}
+      ports:
+        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.api }}}
+    - from:
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.externalCIDR | quote }}
+            except:
+              - {{ .Values.networkPolicy.podCIDR | quote }}
+      ports:
+        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.api }}}
+  egress:
+    - to:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/name: postgres}
+      ports:
+        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.postgres }}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-client-egress
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/component: client}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/component: api}
+      ports:
+        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.api }}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-worker
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/component: worker}
+  policyTypes: [Ingress, Egress]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/name: postgres}
+      ports:
+        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.postgres }}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-postgres
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/name: postgres}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/component: api}
+        - podSelector:
+            matchLabels: {app.kubernetes.io/component: worker}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+      ports:
+        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.postgres }}}
+{{- end }}
