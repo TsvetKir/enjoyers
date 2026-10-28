@@ -1,0 +1,17 @@
+# Merge with the existing Cilium release, retaining its installed chart version.
+# Change release label to match the existing Prometheus selectors.
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+hubble:
+  enabled: true
+  metrics:
+    enabled:
+      - "drop:sourceContext=namespace;destinationContext=namespace"
+      - "tcp:sourceContext=namespace;destinationContext=namespace"
+    # Owned by the shop chart to avoid duplicate scrapes.
+    serviceMonitor:
+      enabled: false

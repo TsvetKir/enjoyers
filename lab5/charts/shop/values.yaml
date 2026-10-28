@@ -82,3 +82,23 @@ priorityClasses:
     name: lab5-shop-critical
     value: 10000
     preemptionPolicy: PreemptLowerPriority
+
+# Reuse the Prometheus Operator / Grafana stack from lab 2.
+monitoring:
+  enabled: false
+  namespace: monitoring
+  # Match spec.serviceMonitorSelector / spec.ruleSelector of existing Prometheus.
+  releaseLabel: kube-prometheus-stack
+  prometheusPodLabels:
+    app.kubernetes.io/name: prometheus
+  interval: 15s
+  coreDNSJob: coredns
+  policyDeniedReason: 'POLICY_DENIED|Policy denied'
+  policyDeniedRate: 0
+  dashboard:
+    enabled: true
+  hubble:
+    namespace: kube-system
+    serviceLabels:
+      k8s-app: hubble
+    port: hubble-metrics

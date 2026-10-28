@@ -1,0 +1,22 @@
+{{- if and .Values.monitoring.enabled .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-prometheus-scrape
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "shop.selectorLabels" (dict "root" . "component" "api") | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.monitoring.namespace | quote }}
+          podSelector:
+            matchLabels:
+              {{- toYaml .Values.monitoring.prometheusPodLabels | nindent 14 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.networkPolicy.ports.api }}
+{{- end }}

@@ -1,0 +1,72 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-api
+  labels:
+    release: {{ .Values.monitoring.releaseLabel | quote }}
+spec:
+  namespaceSelector:
+    matchNames: [{{ .Release.Namespace | quote }}]
+  selector:
+    matchLabels:
+      {{- include "shop.selectorLabels" (dict "root" . "component" "api") | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.monitoring.interval }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-hubble
+  labels:
+    release: {{ .Values.monitoring.releaseLabel | quote }}
+spec:
+  namespaceSelector:
+    matchNames: [{{ .Values.monitoring.hubble.namespace | quote }}]
+  selector:
+    matchLabels:
+      {{- toYaml .Values.monitoring.hubble.serviceLabels | nindent 6 }}
+  endpoints:
+    - port: {{ .Values.monitoring.hubble.port }}
+      interval: {{ .Values.monitoring.interval }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-network
+  labels:
+    release: {{ .Values.monitoring.releaseLabel | quote }}
+spec:
+  groups:
+    - name: {{ .Release.Name }}.network
+      rules:
+        - alert: ShopAPIMetricsUnavailable
+          expr: sum(up{namespace={{ .Release.Namespace | quote }},service="{{ .Release.Name }}-api"}) == 0 or absent(up{namespace={{ .Release.Namespace | quote }},service="{{ .Release.Name }}-api"})
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "No healthy API scrape targets"
+            description: "Check API readiness, ServiceMonitor selection and Prometheus-to-API NetworkPolicy."
+        - alert: ShopPolicyDenied
+          expr: sum(rate(hubble_drop_total{source={{ .Release.Namespace | quote }},reason=~{{ .Values.monitoring.policyDeniedReason | quote }}}[2m])) > {{ .Values.monitoring.policyDeniedRate }}
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Sustained policy-denied packets from shop"
+            description: "Inspect Hubble dropped flows and compare the source/destination with the access matrix; intentional negative tests also trigger this alert."
+        - alert: ShopDNSUnhealthy
+          expr: |
+            (sum(rate(coredns_dns_responses_total{job={{ .Values.monitoring.coreDNSJob | quote }},rcode="SERVFAIL"}[5m])) / clamp_min(sum(rate(coredns_dns_responses_total{job={{ .Values.monitoring.coreDNSJob | quote }}}[5m])), 0.001) > 0.05)
+            or (sum(up{job={{ .Values.monitoring.coreDNSJob | quote }}}) == 0)
+            or absent(up{job={{ .Values.monitoring.coreDNSJob | quote }}})
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CoreDNS unavailable or SERVFAIL ratio exceeds 5%"
+            description: "Check CoreDNS targets and logs. This server-side check does not prove DNS reachability from every application pod."
+{{- end }}

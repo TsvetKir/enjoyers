@@ -100,9 +100,12 @@ spec:
             matchLabels: {app.kubernetes.io/component: api}
         - podSelector:
             matchLabels: {app.kubernetes.io/component: worker}
+      ports:
+        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.postgres }}}
+    - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: cnpg-system
       ports:
-        - {protocol: TCP, port: {{ .Values.networkPolicy.ports.postgres }}}
+        - {protocol: TCP, port: 8000}
 {{- end }}
